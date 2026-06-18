@@ -1,0 +1,34 @@
+/*
+ * folder-follow styling.
+ *
+ * Colors come exclusively from CSS custom properties written to :root by the
+ * plugin (never inline element styles). The active light/dark value is selected
+ * here via Obsidian's body theme class, so theme switches need no JS. Rules are
+ * gated by body-level feature flags and use layered specificity (`body.<flag>`
+ * + class) so they apply only when enabled while staying overridable by themes.
+ */
+
+/* Resolve the active variable from the per-theme pair. */
+body.theme-light {
+	--ff-active-bg: var(--ff-active-bg-light);
+	--ff-hierarchy: var(--ff-hierarchy-light);
+}
+
+body.theme-dark {
+	--ff-active-bg: var(--ff-active-bg-dark);
+	--ff-hierarchy: var(--ff-hierarchy-dark);
+}
+
+/* Active file background — only when the background feature is enabled. */
+body.ff-bg-enabled .nav-file-title.ff-active-file,
+body.ff-bg-enabled .nav-folder-title.ff-active-file {
+	background-color: var(--ff-active-bg);
+	border-radius: var(--radius-s);
+}
+
+/* Folder hierarchy highlight — only when the hierarchy feature is enabled. */
+body.ff-hierarchy-enabled .nav-folder-title.ff-hierarchy,
+body.ff-hierarchy-enabled .nav-file-title.ff-hierarchy {
+	color: var(--ff-hierarchy);
+	font-weight: var(--font-semibold);
+}
