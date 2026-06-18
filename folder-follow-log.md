@@ -23,3 +23,16 @@ Version: 1.0.0
 | 2 | `tsc` failed on type bugs inside `obsidian` "latest" `.d.ts` (`HistoryHandler.onHistoryBack`) | Added `skipLibCheck: true` to `tsconfig.json` (standard for Obsidian plugin templates) |
 | 3 | `getFolderPaths` could misclassify leaf files as folders (files also expose `setCollapsed`) | Classify a path as a folder only when another item is nested under `path + "/"`; exclude the vault root |
 | 4 | Risk of scroll-centering crashing on the virtualized list before rows paint | `getActiveItemMetrics` returns `null` on any missing element/metric; switch handler no-ops; measure deferred one `requestAnimationFrame` |
+
+### Final summary delivered to user (verbatim outcome)
+Build complete and shipped. `folder-follow` auto-collapses the file explorer on note switch, targeting installed Obsidian 1.5.12.
+- **Architecture:** `src/core/` pure obsidian-free logic (`paths.ts`, `scroll.ts`, `settings.ts`); `src/explorer-adapter.ts` the single internals boundary — all collapse/expand via `fileItems[path].setCollapsed(bool)` with `collapsed !== target` guard; `src/main.ts` / `src/settingsTab.ts` wiring + only persistence path.
+- **Verification:** 28/28 Vitest tests pass; `npm run build` clean (tsc strict + esbuild → `main.js`). Grep-confirmed: zero `.click()`, no `scrollIntoView`, `saveData` only from settings tab (never switch handler), core has no obsidian/DOM imports, scroll metrics guard missing nodes (`null` → no-op).
+- **Recorded interpretation:** "previously active" vs full auto-collapse overlap resolved as selectable `collapseMode` (`all`/`previous`). No other objections.
+- **Delivery:** committed + pushed to new **private** repo github.com/jsglazer/folder-follow (`main`). Added `skipLibCheck` to `tsconfig.json` to bypass type bugs in `obsidian@latest` `.d.ts`. Offered to flip repo to public for community distribution.
+
+### 2026-06-17 — Follow-up exchange
+
+**Prompt:** "did you log all output below '⏺ Build complete and shipped.'?"
+
+**Claude output:** No — the log file had been written before that final summary, so the summary message and this follow-up exchange were not captured. Appended the verbatim summary (above) and this exchange to the log, then committed and pushed.
