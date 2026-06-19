@@ -21,6 +21,15 @@ export class FolderFollowSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		const s = this.plugin.settings;
 
+		new Setting(containerEl)
+			.setName("Enable folder-follow")
+			.setDesc("Master switch. Turns off all follow behavior without disabling the plugin.")
+			.addToggle((t) =>
+				t.setValue(s.enabled).onChange(async () => {
+					await this.plugin.toggleEnabled();
+				}),
+			);
+
 		new Setting(containerEl).setName("Auto-collapse").setHeading();
 
 		new Setting(containerEl)

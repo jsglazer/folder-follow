@@ -15,6 +15,12 @@ describe("parseSettings", () => {
 		expect(parseSettings({})).toEqual(DEFAULT_SETTINGS);
 	});
 
+	it("defaults enabled to true and respects a persisted false", () => {
+		expect(parseSettings({}).enabled).toBe(true);
+		expect(parseSettings({ enabled: false }).enabled).toBe(false);
+		expect(parseSettings({ enabled: "no" }).enabled).toBe(true);
+	});
+
 	it("merges valid persisted values over defaults", () => {
 		const parsed = parseSettings({
 			enableAutoCollapse: false,

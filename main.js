@@ -93,6 +93,7 @@ function computeCenteredScrollTop(input) {
 var SCROLL_OFFSET_MIN = -10;
 var SCROLL_OFFSET_MAX = 10;
 var DEFAULT_SETTINGS = {
+  enabled: true,
   enableAutoCollapse: true,
   collapseMode: "all",
   centerActiveFile: true,
@@ -129,6 +130,7 @@ function parseSettings(raw) {
   const d = DEFAULT_SETTINGS;
   const r = raw != null ? raw : {};
   return {
+    enabled: asBool(r.enabled, d.enabled),
     enableAutoCollapse: asBool(r.enableAutoCollapse, d.enableAutoCollapse),
     collapseMode: asCollapseMode(r.collapseMode, d.collapseMode),
     centerActiveFile: asBool(r.centerActiveFile, d.centerActiveFile),
@@ -322,6 +324,11 @@ var FolderFollowSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     const s = this.plugin.settings;
+    new import_obsidian.Setting(containerEl).setName("Enable folder-follow").setDesc("Master switch. Turns off all follow behavior without disabling the plugin.").addToggle(
+      (t) => t.setValue(s.enabled).onChange(async () => {
+        await this.plugin.toggleEnabled();
+      })
+    );
     new import_obsidian.Setting(containerEl).setName("Auto-collapse").setHeading();
     new import_obsidian.Setting(containerEl).setName("Auto-collapse on note switch").setDesc("Collapse inactive folder branches when you open a note.").addToggle(
       (t) => t.setValue(s.enableAutoCollapse).onChange(async (v) => {
@@ -426,6 +433,11 @@ var FolderFollowPlugin = class extends import_obsidian2.Plugin {
       this.app.workspace.on("file-open", (file) => this.handleSwitch(file))
     );
     this.addSettingTab(new FolderFollowSettingTab(this.app, this));
+    this.addCommand({
+      id: "toggle-follow",
+      name: "Toggle folder-follow",
+      callback: () => this.toggleEnabled()
+    });
     this.app.workspace.onLayoutReady(() => this.applyStyling());
   }
   onunload() {
@@ -436,6 +448,7 @@ var FolderFollowPlugin = class extends import_obsidian2.Plugin {
   }
   /** Core note-switch handler. Pure decisions in, adapter effects out. */
   onActiveFileChanged(file) {
+    if (!this.settings.enabled) return;
     if (!file) return;
     const activePath = file.path;
     if (this.settings.enableAutoCollapse) {
@@ -467,9 +480,20 @@ var FolderFollowPlugin = class extends import_obsidian2.Plugin {
   applyStyling() {
     this.adapter.applyCssVariables(buildCssVariables(this.settings));
     this.adapter.setFeatureFlags(
-      this.settings.enableActiveBackground,
-      this.settings.enableHierarchyHighlight
+      this.settings.enabled && this.settings.enableActiveBackground,
+      this.settings.enabled && this.settings.enableHierarchyHighlight
     );
+  }
+  /** Command + settings-tab entry point: flip the master switch and reset visual state. */
+  async toggleEnabled() {
+    this.settings.enabled = !this.settings.enabled;
+    await this.saveSettings();
+    if (!this.settings.enabled) {
+      this.adapter.clearHighlightClasses();
+    } else {
+      this.onActiveFileChanged(this.app.workspace.getActiveFile());
+    }
+    new import_obsidian2.Notice(`Folder-follow ${this.settings.enabled ? "enabled" : "disabled"}`);
   }
   async loadSettings() {
     this.settings = parseSettings(await this.loadData());

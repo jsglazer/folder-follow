@@ -1,7 +1,7 @@
 {
 	"id": "folder-follow",
 	"name": "Folder Follow",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.5.12",
 	"description": "Auto-collapses the file explorer on note switch (keeping only the active path expanded), with optional scroll-centering, active-item background, and hierarchy highlighting.",
 	"author": "Josh Glazer",

@@ -1,6 +1,6 @@
 {
 	"name": "folder-follow",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Auto-collapse the Obsidian file explorer on note switch, with scroll-centering and styling options.",
 	"main": "main.js",
 	"scripts": {

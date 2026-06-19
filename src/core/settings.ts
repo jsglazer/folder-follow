@@ -10,6 +10,8 @@
 import type { CollapseMode } from "./paths";
 
 export interface FolderFollowSettings {
+	/** Master switch for the whole plugin. When false, no behavior runs on note switch. */
+	enabled: boolean;
 	/** Master switch for the auto-collapse behavior. */
 	enableAutoCollapse: boolean;
 	/** "all" = collapse every off-path folder; "previous" = only the branch left. */
@@ -36,6 +38,7 @@ export const SCROLL_OFFSET_MIN = -10;
 export const SCROLL_OFFSET_MAX = 10;
 
 export const DEFAULT_SETTINGS: FolderFollowSettings = {
+	enabled: true,
 	enableAutoCollapse: true,
 	collapseMode: "all",
 	centerActiveFile: true,
@@ -87,6 +90,7 @@ export function parseSettings(raw: unknown): FolderFollowSettings {
 	const d = DEFAULT_SETTINGS;
 	const r = (raw ?? {}) as Record<string, unknown>;
 	return {
+		enabled: asBool(r.enabled, d.enabled),
 		enableAutoCollapse: asBool(r.enableAutoCollapse, d.enableAutoCollapse),
 		collapseMode: asCollapseMode(r.collapseMode, d.collapseMode),
 		centerActiveFile: asBool(r.centerActiveFile, d.centerActiveFile),

@@ -8,7 +8,7 @@
  * settings tab in response to user input.
  */
 
-import { Plugin, debounce, TFile } from "obsidian";
+import { Notice, Plugin, debounce, TFile } from "obsidian";
 import { computeExplorerActions, getAncestorFolders } from "./core/paths";
 import { computeCenteredScrollTop } from "./core/scroll";
 import {
@@ -43,6 +43,12 @@ export default class FolderFollowPlugin extends Plugin {
 
 		this.addSettingTab(new FolderFollowSettingTab(this.app, this));
 
+		this.addCommand({
+			id: "toggle-follow",
+			name: "Toggle folder-follow",
+			callback: () => this.toggleEnabled(),
+		});
+
 		// Apply styling once the layout is ready.
 		this.app.workspace.onLayoutReady(() => this.applyStyling());
 	}
@@ -55,6 +61,7 @@ export default class FolderFollowPlugin extends Plugin {
 
 	/** Core note-switch handler. Pure decisions in, adapter effects out. */
 	private onActiveFileChanged(file: TFile | null): void {
+		if (!this.settings.enabled) return;
 		if (!file) return;
 		const activePath = file.path;
 
@@ -95,9 +102,23 @@ export default class FolderFollowPlugin extends Plugin {
 	applyStyling(): void {
 		this.adapter.applyCssVariables(buildCssVariables(this.settings));
 		this.adapter.setFeatureFlags(
-			this.settings.enableActiveBackground,
-			this.settings.enableHierarchyHighlight,
+			this.settings.enabled && this.settings.enableActiveBackground,
+			this.settings.enabled && this.settings.enableHierarchyHighlight,
 		);
+	}
+
+	/** Command + settings-tab entry point: flip the master switch and reset visual state. */
+	async toggleEnabled(): Promise<void> {
+		this.settings.enabled = !this.settings.enabled;
+		await this.saveSettings();
+
+		if (!this.settings.enabled) {
+			this.adapter.clearHighlightClasses();
+		} else {
+			this.onActiveFileChanged(this.app.workspace.getActiveFile());
+		}
+
+		new Notice(`Folder-follow ${this.settings.enabled ? "enabled" : "disabled"}`);
 	}
 
 	async loadSettings(): Promise<void> {
