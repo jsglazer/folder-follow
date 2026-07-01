@@ -1,6 +1,6 @@
 # folder-follow — Project Log
 
-> No `UpdateXX.md` was supplied for this project, so per the workflow fallback all activity is logged here.
+> No `UpdateNN.md` was supplied for this project, so per the workflow fallback all activity is logged here.
 
 Version: 1.0.0
 
@@ -36,3 +36,20 @@ Build complete and shipped. `folder-follow` auto-collapses the file explorer on 
 **Prompt:** "did you log all output below '⏺ Build complete and shipped.'?"
 
 **Claude output:** No — the log file had been written before that final summary, so the summary message and this follow-up exchange were not captured. Appended the verbatim summary (above) and this exchange to the log, then committed and pushed.
+
+## 2026-06-30 — Add CI workflow
+
+### Prompt
+> (From a broader review of the user's dev projects' test/CI coverage.) Of the 7 Obsidian plugins using Vitest, folder-follow was the only one with no `.github/workflows` directory at all — its 29 tests ran locally but were never enforced on push/PR. Asked to bring it in line with the other six.
+
+### Claude output
+- Added `.github/workflows/ci.yml` modeled on the other six projects' CI (checkout → setup-node@24 → `npm ci` → `npm test` → `npm run build`, triggered on push/PR to `main`).
+- Omitted the `lint`/`format:check` steps present in the other projects' workflows: folder-follow's `package.json` has a `lint` script (`eslint src`) but no `eslint` devDependency or config installed, and no `format:check` script at all — including those steps would have failed immediately.
+- Verified locally before committing: `npm test` (29/29 passing) and `npm run build` (tsc + esbuild) both succeed.
+- Committed only `.github/workflows/ci.yml`; left other pre-existing uncommitted changes in the working tree (deleted `DEPLOY.sh`/`New/*` files, untracked `NewBuild/`) untouched.
+
+### Issue / Fix summary
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | folder-follow had no CI — 29 Vitest tests never ran on push/PR, unlike the project's 6 sibling plugins | Added `.github/workflows/ci.yml` running `npm test` + `npm run build` on push/PR to `main` |
+| 2 | Sibling projects' CI templates include `lint`/`format:check` steps that folder-follow can't currently satisfy | Left those steps out rather than adding a broken gate; noted as a follow-up if eslint/prettier are ever wired up |
