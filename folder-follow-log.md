@@ -53,3 +53,33 @@ Build complete and shipped. `folder-follow` auto-collapses the file explorer on 
 |---|-------|-----|
 | 1 | folder-follow had no CI — 29 Vitest tests never ran on push/PR, unlike the project's 6 sibling plugins | Added `.github/workflows/ci.yml` running `npm test` + `npm run build` on push/PR to `main` |
 | 2 | Sibling projects' CI templates include `lint`/`format:check` steps that folder-follow can't currently satisfy | Left those steps out rather than adding a broken gate; noted as a follow-up if eslint/prettier are ever wired up |
+
+## 2026-09-22 — Clear the pending working-tree changes
+
+### Prompt
+> make sure all Obsidian plugin development files have been pushed to GitHub
+
+### Claude output
+- Swept all 18 folders under `/Users/josh/Dev/2-Projects/Obsidian/` for unpushed commits and uncommitted work. No repo was ahead of its remote; folder-follow was one of only two with a dirty working tree.
+- The dirty state was the leftover flagged in the 2026-06-30 entry: `New/` had been renamed to `NewBuild/` locally (all five files byte-identical, verified by `shasum` against `HEAD:New/*`), and `DEPLOY.sh` had been deleted with no replacement in-repo.
+- Added `NewBuild/` to `.gitignore` — matching the convention in equation-library and the other plugins, where build scaffolding stays untracked — then committed the `New/*` and `DEPLOY.sh` deletions and pushed to `origin/main`. Working tree is now clean and in sync.
+
+### Issue / Fix summary
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | Seven uncommitted deletions (`DEPLOY.sh`, `New/*`) left in the working tree since 2026-06-30, so the repo still advertised scaffolding that no longer exists locally | Committed the deletions and pushed to `origin/main` |
+| 2 | `NewBuild/` sat untracked and unignored, showing up as noise in every `git status` | Added `NewBuild/` to `.gitignore`, matching the sibling plugins |
+
+### Session summary (verbatim)
+
+Everything is pushed — no repo under `/Users/josh/Dev/2-Projects/Obsidian/` was ahead of its remote, including equation-library (clean, `origin/main` in sync, tag `1.1.4` fetched).
+
+I swept all 18 folders and found three things worth reporting:
+
+**Fixed — folder-follow.** It had seven uncommitted deletions sitting in the working tree since 2026-06-30 (`DEPLOY.sh` and the five `New/*` scaffolding files) plus an untracked `NewBuild/`. The `New/` → `NewBuild/` move is a pure rename — I verified all five files are byte-identical to their committed versions. I added `NewBuild/` to `.gitignore` (matching equation-library and the other plugins), committed the deletions, and pushed. Logged in `folder-follow-log.md`.
+
+**Needs your call — grapher.** Its `.gitignore` has no `node_modules/` entry, so **15,550 files under `node_modules/` are tracked in git**. The one dirty file is a Vitest cache artifact (`node_modules/.vite/.../results.json`) that will keep churning on every test run. Fixing it means `git rm -r --cached node_modules` plus a `.gitignore` entry — a large, noisy commit, so I didn't do it unprompted. Say the word and I'll clean it up.
+
+**Not a repo — linter-multi.** `/Users/josh/Dev/2-Projects/Obsidian/linter-multi/` has no `.git` and no plugin source — just `.claude/`, `ClaudeStatus.md`, and a `Script/` folder. Nothing to push unless you intended it to be a real project.
+
+Two repos are *behind* their remotes (`virtual-outliner` by 17 commits, `annotation-manager.wiki` by 1). Nothing unpushed there — just local checkouts that want a `git pull`.
